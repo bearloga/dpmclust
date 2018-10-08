@@ -1,6 +1,6 @@
 # DP-means clustering in R
 
-This package implements the DP-means algorithm introduced by Kulis and Jordan in their article *[Revisiting k-means: New Algorithms via Bayesian Nonparametrics](https://arxiv.org/abs/1111.0352)*. Instead of specifying how many clusters to partition the data into, like one would with k-means, user controls cluster *creation* with penalty parameter λ which controls the creation of clusters during iteration:
+This package implements the DP-means algorithm introduced by Kulis and Jordan in their article *[Revisiting k-means: New Algorithms via Bayesian Nonparametrics](https://arxiv.org/abs/1111.0352)*. Instead of specifying how many clusters to partition the data into, like one would with k-means, user specifies a penalty parameter λ which controls if/when new clusters are created during iterations:
 
 ![Effect of choice of lambda on clustering](lambdas.png)
 
