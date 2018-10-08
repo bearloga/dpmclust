@@ -1,0 +1,159 @@
+---
+title: "Bayesian nonparametric clustering with DP-means"
+author: "Mikhail Popov"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Bayesian nonparametric clustering with DP-means}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+library(knitr); library(kableExtra)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r packages}
+library(ggfortify) # for visualization
+library(dpmclust)  # for clustering
+```
+
+# Introduction
+
+We'll be working with two datasets, `iris` (included with R) and `wine` (included with this package), and two [clustering](https://en.wikipedia.org/wiki/Cluster_analysis) techniques: k-means (built into R) and DP-means (provided by this package). In [k-means](https://en.wikipedia.org/wiki/K-means_clustering), you specify number of clusters $k$ to partition the data points into, $k$ centers are initialized and then iterated upon using [expectation-maximization (EM)](https://en.wikipedia.org/wiki/Expectation-maximization_algorithm).
+
+In DP-means you start with a single cluster centered at the global mean of the data and specify a "penalty parameter" $\lambda$ which deterministically controls when a new cluster should be created. The process of checking whether a new cluster should be created, creating it, and updating existing clusters centers is repeated until convergence. For the [Dirichlet process](https://en.wikipedia.org/wiki/Dirichlet_process)-based theory behind the DP-means algorithm, I refer you to *[Kulis & Jordan (2011)](https://arxiv.org/abs/1111.0352)*.
+
+# Examples
+
+## Iris dataset
+
+Using [principal component analysis](https://en.wikipedia.org/wiki/Principal_component_analysis) (PCA) we can visualize the 4-dimensional iris data (which needs no introduction) in just 2 dimensions. Julia Silge is great at teaching PCA so I refer you to the recording of her excellent *[Understanding PCA using Shiny and Stack Overflow data](https://www.rstudio.com/resources/videos/understanding-pca-using-shiny-and-stack-overflow-data/)* talk and [the accompanying blog post](https://juliasilge.com/blog/stack-overflow-pca/).
+
+```{r iris, fig.width=6, fig.height=4}
+iris_x <- iris[, 1:4]
+iris_y <- iris[, 5]
+pca_iris <- prcomp(iris_x)
+# Visualize as scores from first two principal components:
+autoplot(pca_iris, data = iris,
+         colour = "Species", shape = "Species",
+         main = "Iris dataset") +
+  scale_color_brewer(palette = "Set1")
+```
+
+```{r clustering_iris_km}
+set.seed(0)
+clustering_iris_km <- kmeans(iris_x, centers = 3)
+iris$k_means <- factor(clustering_iris_km$cluster)
+table(iris_y, iris$k_means)
+```
+
+```{r clustering_iris_dp}
+clustering_iris_dp <- dp_means(iris_x, lambda = 2)
+iris$dp_means <- factor(clustering_iris_dp$cluster)
+table(iris_y, iris$dp_means)
+```
+
+```{r dataviz_clustering_iris, echo=FALSE, fig.width=6, fig.height=3}
+p1 <- autoplot(pca_iris, data = iris,
+               colour = "k_means", shape = "k_means",
+               main = "k-means clustering")
+p2 <- autoplot(pca_iris, data = iris,
+               colour = "dp_means", shape = "dp_means",
+               main = "DP-means clustering")
+new("ggmultiplot", plots = list(p1, p2), ncol = 2) +
+  scale_color_brewer(palette = "Set1") +
+  theme(legend.position = "bottom")
+```
+
+## Wine dataset
+
+The [`wine` dataset](https://archive.ics.uci.edu/ml/datasets/wine) contains a breakdown of 178 wines from 3 cultivars with most of the features being results chemical analysis. For example, there are measures of [phenolic content](https://en.wikipedia.org/wiki/Phenolic_content_in_wine) and [condensed tannins](https://en.wikipedia.org/wiki/Condensed_tannin). For more information, see `?wine`. Unlike the `iris` dataset, these measurements are on different scales so we'll want to scale the features to have a standard deviation of 1 when we perform PCA.
+
+```{r wine, fig.width=6, fig.height=4}
+data("wine")
+wine_x <- wine[, -1]
+wine_y <- wine[, 1]
+pca_wine <- prcomp(wine_x, center = TRUE, scale = TRUE)
+# Visualize as scores from first two principal components:
+autoplot(pca_wine, data = wine,
+         colour = "class", shape = "class",
+         main = "Wine dataset") +
+  scale_color_brewer(palette = "Set1")
+```
+
+```{r clustering_wine_km}
+set.seed(0)
+clustering_wine_km <- kmeans(wine_x, centers = 3)
+wine$k_means <- factor(clustering_wine_km$cluster)
+table(wine_y, wine$k_means)
+```
+
+```{r clustering_wine_dp}
+clustering_wine_dp <- dp_means(wine_x, lambda = 500)
+wine$dp_means <- factor(clustering_wine_dp$cluster)
+table(wine_y, wine$dp_means)
+```
+
+```{r dataviz_clustering_wine, echo=FALSE, fig.width=6, fig.height=3}
+p3 <- autoplot(pca_wine, data = wine,
+               colour = "k_means", shape = "k_means",
+               main = "k-means clustering")
+p4 <- autoplot(pca_wine, data = wine,
+               colour = "dp_means", shape = "dp_means",
+               main = "DP-means clustering")
+new("ggmultiplot", plots = list(p3, p4), ncol = 2) +
+  scale_color_brewer(palette = "Set1") +
+  theme(legend.position = "bottom")
+```
+
+# Comparison
+
+The package includes the function `nmi()` for computing the [Normalized Mutual Information (NMI)](https://en.wikipedia.org/wiki/Mutual_information#Normalized_variants) score which measures the agreement between the ground truth class assignment and clustering assignment, ignoring permutations. An NMI of 0 indicates no mutual information while an NMI of 1 indicates perfect correlation.
+
+```{r nims, echo=FALSE}
+nims <- data.frame(
+  dataset = c("iris", "wine"),
+  k_means = c(
+    nmi(iris$Species, iris$k_means),
+    nmi(wine$class, wine$k_means)
+  ),
+  dp_means = c(
+    nmi(iris$Species, iris$dp_means),
+    nmi(wine$class, wine$dp_means)
+  ),
+  stringsAsFactors = FALSE
+)
+nims <- kable(nims, align = c("l", "r", "r"), digits = 3,
+              col.names = c("Dataset", "k-means", "DP-means"),
+              caption = "Normalized Mutual Information")
+kable_styling(nims)
+```
+
+## Geyser dataset
+
+Here is an example which clusters eruptions of the [Old Faithful geyser](https://en.wikipedia.org/wiki/Old_Faithful) in Yellowstone National Park, Wyoming, USA -- available in R as `faithful` -- using different values of $\lambda$:
+
+```{r clustering_faithful, echo=FALSE}
+lambdas <- c(8, 17, 26, 30)
+clustering_faithful <- do.call(rbind, lapply(lambdas, function(lambda) {
+  clustering <- dp_means(faithful, lambda, verbose = FALSE)
+  return(cbind(faithful, lambda = lambda, cluster = clustering$cluster))
+}))
+clustering_faithful$lambda <- factor(clustering_faithful$lambda, lambdas, sprintf("lambda = %i", lambdas))
+clustering_faithful$cluster <- factor(clustering_faithful$cluster)
+```
+```{r dataviz_clustering_faithful, echo=FALSE, fig.width=6, fig.height=6}
+ggplot(clustering_faithful, aes(x = eruptions, y = waiting)) +
+  geom_point(aes(color = cluster)) +
+  scale_color_brewer(palette = "Set1") +
+  facet_wrap(~ lambda) +
+  labs(
+    x = "Eruption time (in minutes)", y = "Waiting time to next eruption (in minutes)",
+    title = "Effect of choice of lambda on clustering"
+  )
+```
