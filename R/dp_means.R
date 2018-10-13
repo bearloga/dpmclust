@@ -1,7 +1,3 @@
-euclidean_distance <- function(u, v) {
-  return(euclideanDistance(u, v))
-}
-
 #' @title DP-means Clustering
 #' @description Perform clustering on a data matrix using a pure R
 #'   implementation of the DP-means algorithm.
@@ -34,7 +30,7 @@ dp_means <- function(x, lambda, max_iter = 100, tol = 1e-3, verbose = TRUE) {
     for (i in 1:nrow(x)) {
       d_ic <- numeric(k)
       for (c in 1:k) {
-        d_ic[c] <- euclidean_distance(x[i,], mu[c,])
+        d_ic[c] <- euclideanDistance(x[i,], mu[c,])
       }
       if (min(d_ic) > lambda) {
         k <- k + 1
@@ -45,12 +41,12 @@ dp_means <- function(x, lambda, max_iter = 100, tol = 1e-3, verbose = TRUE) {
       }
     }
     # Compute new cluster means:
-    clusters <- split(x, z)
+    clusters <- lapply(split(df, z), as.matrix)
     mu <- do.call(rbind, lapply(clusters, colMeans))
     # Calculate the objective:
     ss_within <- numeric(k)
     for (c in 1:k) {
-      ss_within[c] <- sum(apply(clusters[[c]], 1, euclidean_distance, v = mu[c,]))
+      ss_within[c] <- sum(euclideanDistances(clusters[[c]], mu[c,]))
     }
     ss_between <- sum(ss_within)
     ss_total[iteration] <- ss_between + lambda * k
