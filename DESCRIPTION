@@ -23,3 +23,5 @@ Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
 LazyData: true
 RoxygenNote: 6.1.0
+LinkingTo: RcppArmadillo, Rcpp
+Imports: Rcpp

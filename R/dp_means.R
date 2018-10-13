@@ -1,5 +1,5 @@
 euclidean_distance <- function(u, v) {
-  return(sqrt(sum((u - v) ^ 2)))
+  return(euclideanDistance(u, v))
 }
 
 #' @title DP-means Clustering
@@ -23,7 +23,8 @@ euclidean_distance <- function(u, v) {
 #'   as an object returned by [stats::kmeans()].
 #' @export
 dp_means <- function(x, lambda, max_iter = 100, tol = 1e-3, verbose = TRUE) {
-  if (!is.data.frame(x)) x <- as.data.frame(x)
+  df <- as.data.frame(x)
+  x <- as.matrix(x)
   k <- 1
   mu <- matrix(colMeans(x), ncol = ncol(x), nrow = k)
   colnames(mu) <- colnames(x)
@@ -33,7 +34,7 @@ dp_means <- function(x, lambda, max_iter = 100, tol = 1e-3, verbose = TRUE) {
     for (i in 1:nrow(x)) {
       d_ic <- numeric(k)
       for (c in 1:k) {
-        d_ic[c] <- euclidean_distance(x[i,, drop = FALSE], mu[c,, drop = FALSE])
+        d_ic[c] <- euclidean_distance(x[i,], mu[c,])
       }
       if (min(d_ic) > lambda) {
         k <- k + 1
@@ -49,7 +50,7 @@ dp_means <- function(x, lambda, max_iter = 100, tol = 1e-3, verbose = TRUE) {
     # Calculate the objective:
     ss_within <- numeric(k)
     for (c in 1:k) {
-      ss_within[c] <- sum(apply(clusters[[c]], 1, euclidean_distance, v = mu[c,, drop = FALSE]))
+      ss_within[c] <- sum(apply(clusters[[c]], 1, euclidean_distance, v = mu[c,]))
     }
     ss_between <- sum(ss_within)
     ss_total[iteration] <- ss_between + lambda * k
