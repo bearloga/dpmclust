@@ -9,4 +9,6 @@
 #' @aliases dpmclust
 #' @docType package
 #' @name dpmclust-package
+#' @useDynLib dpmclust
+#' @importFrom Rcpp sourceCpp
 NULL

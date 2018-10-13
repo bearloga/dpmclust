@@ -2,4 +2,6 @@
 
 export(dp_means)
 export(nmi)
+importFrom(Rcpp,sourceCpp)
 importFrom(stats,setNames)
+useDynLib(dpmclust)
