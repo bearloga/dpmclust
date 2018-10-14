@@ -24,4 +24,4 @@ y <- dp_means(x, lambda = 1)
 
 ## Future Work
 
-Currently there's only a pure R implementation which is a bit a slow so I still need to write a version in C++. Also need to implement [lambda means](https://ieeexplore.ieee.org/document/7899984) algorithm for choosing optimal λ.
+Need to implement [lambda means](https://ieeexplore.ieee.org/document/7899984) algorithm for choosing optimal λ.
