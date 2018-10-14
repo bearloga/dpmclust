@@ -2,6 +2,7 @@ Package: dpmclust
 Type: Package
 Title: Bayesian Nonparametric Clustering Using 'DP-means' Algorithm
 Version: 0.2.0
+Date: 2018-10-14
 Authors@R: c(
     person("Mikhail", "Popov", email = "mikhail@mpopov.com",
            role = c("aut", "cre"), comment = "@bearloga on Twitter")

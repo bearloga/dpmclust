@@ -1,0 +1,31 @@
+citHeader("To cite dpmclust in publications, please use:")
+
+rpkg_version <- paste0("R package version ", meta$Version)
+
+citEntry(
+  entry = "manual",
+  title = "dpmclust: Bayesian Nonparametric Clustering Using 'DP-means' Algorithm",
+  author = as.person("Mikhail Popov"),
+  year = "2018",
+  note = rpkg_version,
+  url = "https://github.com/bearloga/dpmclust",
+  textVersion = paste(
+    "Mikhail Popov (2018).",
+    "dpmclust: Bayesian Nonparametric Clustering Using 'DP-means' Algorithm.",
+    paste0(rpkg_version, "."), "URL https://github.com/bearloga/dpmclust."
+  )
+)
+
+citEntry(
+  entry = "article",
+  title = "Revisiting k-means: New Algorithms via Bayesian Nonparametrics.",
+  author = personList(as.person("Brian Kulis"), as.person("Michael I. Jordan")),
+  year = "2012",
+  journal = "Proceedings of the 29th International Conference on Machine Learning",
+  textVersion = paste(
+    "Brian Kulis and Michael I. Jordan (2012).",
+    "Revisiting k-means: New Algorithms via Bayesian Nonparametrics.",
+    "Proceedings of the 29th International Conference on Machine Learning.",
+    "URL https://icml.cc/2012/papers/291.pdf."
+  ),
+)
