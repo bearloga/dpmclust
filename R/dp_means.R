@@ -22,26 +22,14 @@ dp_means <- function(x, lambda, max_iter = 100, tol = 1e-3, verbose = TRUE) {
   df <- as.data.frame(x)
   x <- as.matrix(x)
   k <- 1
-  mu <- matrix(colMeans(x), ncol = ncol(x), nrow = k)
+  mu <- matrix(colMeans(x), ncol = ncol(x), nrow = k, byrow = TRUE)
   colnames(mu) <- colnames(x)
-  z <- rep(1, nrow(x))
   ss_total <- numeric(max_iter)
   for (iteration in 1:max_iter) {
-    for (i in 1:nrow(x)) {
-      d_ic <- numeric(k)
-      for (c in 1:k) {
-        d_ic[c] <- euclideanDistance(x[i,], mu[c,])
-      }
-      if (min(d_ic) > lambda) {
-        k <- k + 1
-        z[i] <- k
-        mu <- rbind(mu, x[i, ])
-      } else {
-        z[i] <- which.min(d_ic)
-      }
-    }
+    current_assignments <- processInstances(mu, x, lambda)
+    k <- max(current_assignments)
     # Compute new cluster means:
-    clusters <- lapply(split(df, z), as.matrix)
+    clusters <- lapply(split(df, current_assignments), as.matrix)
     mu <- do.call(rbind, lapply(clusters, colMeans))
     # Calculate the objective:
     ss_within <- numeric(k)
@@ -66,7 +54,8 @@ dp_means <- function(x, lambda, max_iter = 100, tol = 1e-3, verbose = TRUE) {
   }
   return(structure(
     list(
-      centers = mu, cluster = z,
+      centers = mu,
+      cluster = stats::setNames(current_assignments, rownames(x)),
       totss = ss_total[iteration],
       withinss = ss_within,
       betweenss = ss_between,
