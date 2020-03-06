@@ -9,8 +9,8 @@ The algorithm starts with a single cluster and then processes the data points, c
 ## Installation
 
 ```R
-# install.packages("devtools")
-devtools::install_github("bearloga/dpmclust")
+# install.packages("remotes")
+remotes::install_github("bearloga/dpmclust")
 ```
 
 ## Usage
